@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank Note Authenticator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Tokens ─────────────────────────────────────── */
+    :root {
+      --bg:       #0b0e14;
+      --surface:  #13171f;
+      --border:   #1f2530;
+      --accent:   #00d084;      /* security-thread green */
+      --danger:   #ff4f4f;
+      --muted:    #5a6275;
+      --text:     #e8ecf2;
+      --sub:      #8b95a8;
+      --radius:   14px;
+      --mono:     'JetBrains Mono', monospace;
+      --sans:     'Space Grotesk', sans-serif;
+    }
+
+    /* ── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    header {
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -.3px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: .9rem;
+    }
+    .badge {
+      font-family: var(--mono);
+      font-size: .65rem;
+      background: rgba(0,208,132,.12);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,208,132,.25);
+    }
+
+    /* ── Hero ───────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 70px 24px 40px;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.04em;
+      max-width: 680px;
+      margin: 0 auto 18px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--sub);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Microprint strip (signature element) ────────── */
+    .micro-strip {
+      font-family: var(--mono);
+      font-size: .5rem;
+      color: var(--border);
+      letter-spacing: .25em;
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 6px 0;
+      margin: 32px 0;
+      user-select: none;
+    }
+
+    /* ── Main layout ─────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 640px) { main { grid-template-columns: 1fr; } }
+
+    /* ── Card ────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .card-title {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    /* ── Inputs ──────────────────────────────────────── */
+    .field { margin-bottom: 18px; }
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--sub);
+      margin-bottom: 7px;
+    }
+    label .hint {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: var(--muted);
+    }
+    input[type="number"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-family: var(--mono);
+      font-size: .88rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,208,132,.1);
+    }
+    input[type="number"]::placeholder { color: var(--muted); }
+
+    /* ── Button ──────────────────────────────────────── */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 9px;
+      font-family: var(--sans);
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 4px;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--sub);
+      margin-top: 10px;
+      font-size: .8rem;
+    }
+
+    /* ── Result panel ────────────────────────────────── */
+    .result-card { position: relative; overflow: hidden; min-height: 260px; }
+
+    .result-idle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: 220px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    .result-idle svg { opacity: .3; }
+
+    .result-content { display: none; }
+    .result-content.visible { display: block; }
+
+    .verdict {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -.04em;
+      margin-bottom: 4px;
+    }
+    .verdict.real { color: var(--accent); }
+    .verdict.fake { color: var(--danger); }
+
+    .verdict-sub {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    /* Confidence bar */
+    .conf-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .72rem;
+      color: var(--sub);
+      margin-bottom: 7px;
+    }
+    .conf-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .conf-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .8s cubic-bezier(.22,1,.36,1);
+      width: 0%;
+    }
+    .conf-fill.real { background: var(--accent); }
+    .conf-fill.fake { background: var(--danger); }
+
+    /* Feature summary */
+    .features-summary {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .feat-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .feat-chip .name {
+      font-size: .65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 3px;
+    }
+    .feat-chip .val {
+      font-family: var(--mono);
+      font-size: .88rem;
+      color: var(--text);
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 80px auto;
+    }
+    .spinner.active { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .error-msg {
+      display: none;
+      color: var(--danger);
+      font-size: .8rem;
+      margin-top: 12px;
+    }
+    .error-msg.visible { display: block; }
+
+    /* ── Note Gallery ───────────────────────────────── */
+    .gallery-section {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto 48px;
+      padding: 0 24px;
+    }
+    .gallery-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .gallery-heading .card-title { margin-bottom: 0; }
+    .gallery-divider {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 540px) { .gallery-grid { grid-template-columns: 1fr; } }
+
+    .note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .25s, transform .2s;
+    }
+    .note-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+    .note-card.fake-note:hover { border-color: var(--danger); }
+
+    .note-img-wrap {
+      position: relative;
+      background: #0d1017;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+    }
+    .note-img-wrap img {
+      max-width: 100%;
+      max-height: 160px;
+      object-fit: contain;
+      border-radius: 6px;
+      display: block;
+    }
+    /* Fallback when image missing */
+    .note-img-wrap .img-fallback {
+      width: 100%;
+      height: 140px;
+      background: repeating-linear-gradient(
+        45deg,
+        #1a1f2b 0px, #1a1f2b 10px,
+        #13171f 10px, #13171f 20px
+      );
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+    }
+    .note-status-pill {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-family: var(--mono);
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .pill-real {
+      background: rgba(0,208,132,.15);
+      color: var(--accent);
+      border: 1px solid rgba(0,208,132,.3);
+    }
+    .pill-fake {
+      background: rgba(255,79,79,.15);
+      color: var(--danger);
+      border: 1px solid rgba(255,79,79,.3);
+    }
+
+    .note-info {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .note-name {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .note-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-real { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .dot-fake { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+    .note-desc {
+      font-size: .72rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .note-filename {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: var(--border);
+      margin-top: 8px;
+    }
+
+    /* ── Footer ─────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: .72rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">₹</div>
+    NoteGuard
+  </div>
+  <span class="badge">ML · Flask · v1.0</span>
+</header>
+
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<div class="hero">
+  <p class="hero-eyebrow">Bank Note Authentication</p>
+  <h1>Is your note <span>real</span> or fake?</h1>
+  <p>Enter the four wavelet-transformed features extracted from the note image and let the model decide instantly.</p>
+</div>
+
+<!-- Microprint strip — the signature element -->
+<div class="micro-strip" id="microStrip">
+  GENUINE · SECURITY · AUTHENTIC · VERIFY · CURRENCY · PROTECT · GENUINE · SECURITY · AUTHENTIC · VERIFY · CURRENCY · PROTECT · GENUINE · SECURITY · AUTHENTIC · VERIFY · CURRENCY · PROTECT · GENUINE · SECURITY ·&nbsp;
+</div>
+
+<!-- ── Main ─────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Left: input form -->
+  <div class="card">
+    <div class="card-title">Note Features</div>
+
+    <div class="field">
+      <label>Variance <span class="hint">of wavelet transform</span></label>
+      <input type="number" id="variance" step="any" placeholder="e.g. 3.6216" />
+    </div>
+    <div class="field">
+      <label>Skewness <span class="hint">of wavelet transform</span></label>
+      <input type="number" id="skewness" step="any" placeholder="e.g. 8.6661" />
+    </div>
+    <div class="field">
+      <label>Curtosis <span class="hint">of wavelet transform</span></label>
+      <input type="number" id="curtosis" step="any" placeholder="e.g. -2.8073" />
+    </div>
+    <div class="field">
+      <label>Entropy <span class="hint">of image</span></label>
+      <input type="number" id="entropy" step="any" placeholder="e.g. -0.44699" />
+    </div>
+
+    <div class="error-msg" id="errorMsg">⚠ Please fill in all four fields.</div>
+
+    <button class="btn btn-primary" id="predictBtn" onclick="predict()">Authenticate Note</button>
+    <button class="btn btn-ghost" onclick="reset()">Clear</button>
+  </div>
+
+  <!-- Right: result -->
+  <div class="card result-card">
+    <div class="card-title">Authentication Result</div>
+
+    <div class="spinner" id="spinner"></div>
+
+    <div class="result-idle" id="resultIdle">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="12" width="40" height="24" rx="4" stroke="#5a6275" stroke-width="2"/>
+        <line x1="4" y1="20" x2="44" y2="20" stroke="#5a6275" stroke-width="2"/>
+        <rect x="8" y="24" width="10" height="4" rx="1" fill="#5a6275"/>
+      </svg>
+      Enter note features to authenticate
+    </div>
+
+    <div class="result-content" id="resultContent">
+      <div class="verdict" id="verdictText">—</div>
+      <div class="verdict-sub" id="verdictSub">confidence level</div>
+
+      <div class="conf-label">
+        <span>Confidence</span>
+        <span id="confPct">0%</span>
+      </div>
+      <div class="conf-track">
+        <div class="conf-fill" id="confFill"></div>
+      </div>
+
+      <div class="features-summary" id="featuresSummary"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Note Gallery ──────────────────────────────────────────── -->
+<section class="gallery-section">
+  <div class="gallery-heading">
+    <div class="card-title">Sample Bank Notes</div>
+    <div class="gallery-divider"></div>
+  </div>
+
+  <div class="gallery-grid">
+
+    <!-- Note 1 — img.png → REAL -->
+    <div class="note-card">
+      <div class="note-img-wrap">
+        <img
+          src="{{ url_for('static', filename='img.png') }}"
+          alt="Real Bank Note — img.png"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div class="img-fallback" style="display:none;">img.png · not found</div>
+        <span class="note-status-pill pill-real">✓ Real</span>
+      </div>
+      <div class="note-info">
+        <div class="note-name">
+          <span class="note-dot dot-real"></span>
+          Genuine Bank Note
+        </div>
+        <div class="note-desc">
+          Authenticated note. All security features — watermark, microprint, and UV strip — verified.
+        </div>
+        <div class="note-filename">static / img.png</div>
+      </div>
+    </div>
+
+    <!-- Note 2 — img_1.png → FAKE -->
+    <div class="note-card fake-note">
+      <div class="note-img-wrap">
+        <img
+          src="{{ url_for('static', filename='img_1.png') }}"
+          alt="Fake Bank Note — img_1.png"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+        <div class="img-fallback" style="display:none;">img_1.png · not found</div>
+        <span class="note-status-pill pill-fake">✗ Fake</span>
+      </div>
+      <div class="note-info">
+        <div class="note-name">
+          <span class="note-dot dot-fake"></span>
+          Counterfeit Bank Note
+        </div>
+        <div class="note-desc">
+          Flagged as counterfeit. Wavelet features fall outside the distribution of genuine currency.
+        </div>
+        <div class="note-filename">static / img_1.png</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer>
+  Built with Flask · TensorFlow · scikit-learn &nbsp;|&nbsp; Banknote Authentication Dataset
+</footer>
+
+<script>
+  // Animate microprint strip
+  (() => {
+    const strip = document.getElementById('microStrip');
+    let x = 0;
+    function tick() {
+      x -= .4;
+      if (x < -strip.scrollWidth / 2) x = 0;
+      strip.style.transform = `translateX(${x}px)`;
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+
+  const fields = ['variance', 'skewness', 'curtosis', 'entropy'];
+
+  async function predict() {
+    const err = document.getElementById('errorMsg');
+    err.classList.remove('visible');
+
+    const payload = {};
+    for (const f of fields) {
+      const v = document.getElementById(f).value.trim();
+      if (v === '') { err.classList.add('visible'); return; }
+      payload[f] = parseFloat(v);
+    }
+
+    // Show spinner, hide idle/result
+    document.getElementById('resultIdle').style.display    = 'none';
+    document.getElementById('resultContent').classList.remove('visible');
+    document.getElementById('spinner').classList.add('active');
+    document.getElementById('predictBtn').disabled = true;
+
+    try {
+      const res  = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      renderResult(data, payload);
+    } catch (e) {
+      document.getElementById('resultIdle').style.display = 'flex';
+      err.textContent = '⚠ ' + e.message;
+      err.classList.add('visible');
+    } finally {
+      document.getElementById('spinner').classList.remove('active');
+      document.getElementById('predictBtn').disabled = false;
+    }
+  }
+
+  function renderResult(data, payload) {
+    const isReal = data.prediction === 'Real';
+    const cls    = isReal ? 'real' : 'fake';
+
+    const verdictEl = document.getElementById('verdictText');
+    verdictEl.textContent = data.prediction.toUpperCase();
+    verdictEl.className   = 'verdict ' + cls;
+
+    document.getElementById('verdictSub').textContent =
+      `${data.confidence.toFixed(1)}% confidence this note is ${data.prediction.toLowerCase()}`;
+
+    document.getElementById('confPct').textContent = data.confidence.toFixed(1) + '%';
+    const fill = document.getElementById('confFill');
+    fill.className = 'conf-fill ' + cls;
+    setTimeout(() => { fill.style.width = data.confidence + '%'; }, 50);
+
+    // Feature chips
+    const labels = { variance: 'Variance', skewness: 'Skewness', curtosis: 'Curtosis', entropy: 'Entropy' };
+    document.getElementById('featuresSummary').innerHTML = fields.map(f => `
+      <div class="feat-chip">
+        <div class="name">${labels[f]}</div>
+        <div class="val">${Number(payload[f]).toFixed(4)}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('resultContent').classList.add('visible');
+  }
+
+  function reset() {
+    fields.forEach(f => document.getElementById(f).value = '');
+    document.getElementById('errorMsg').classList.remove('visible');
+    document.getElementById('resultContent').classList.remove('visible');
+    document.getElementById('confFill').style.width = '0%';
+    document.getElementById('resultIdle').style.display = 'flex';
+  }
+</script>
+</body>
+</html>

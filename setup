@@ -1,0 +1,24 @@
+#!/bin/bash
+echo "===================================="
+echo "  NoteGuard - Environment Setup"
+echo "===================================="
+
+# Step 1 — Create virtual environment
+echo "[1/5] Creating virtual environment..."
+python3 -m venv .venv
+
+# Step 2 — Activate
+echo "[2/5] Activating virtual environment..."
+source .venv/bin/activate
+
+# Step 3 — Upgrade pip
+echo "[3/5] Upgrading pip..."
+pip install --upgrade pip
+
+# Step 4 — Install dependencies
+echo "[4/5] Installing dependencies..."
+pip install -r requirements.txt
+
+# Step 5 — Run app
+echo "[5/5] Starting Flask app..."
+python app.py
