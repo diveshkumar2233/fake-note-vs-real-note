@@ -18,7 +18,7 @@ Built with **Flask**, **FastAPI**, and **TensorFlow**.
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/fake-note-vs-real-note.git
+https://github.com/diveshkumar2233/fake-note-vs-real-note
 cd fake-note-vs-real-note
 ```
 
