@@ -105,7 +105,7 @@ FAKE NOTE VS REAL NOTE/
 
 ## 🛠️ Tech Stack
 
-- **Frontend** → HTML, CSS, JavaScript
+- **Frontend** → HTML, CSS, python 
 - **Backend** → Flask + FastAPI
 - **ML Model** → TensorFlow / Keras
 - **Preprocessing** → scikit-learn (StandardScaler)
